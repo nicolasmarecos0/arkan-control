@@ -109,51 +109,150 @@ en la sección siguiente.
    (lo que ata a una persona con un negocio es el acceso), y crear un usuario no
    produce un hecho porque los hechos son siempre de un negocio.
 
-## Reconciliación Misión 1.1
+## Reconciliación Misión 1.1 (preliminar, sólo Master Plan)
+
+> Superada por la sección "Reconciliación Misión 1.1 (cierre)" de abajo, hecha ya
+> con el Implementation Brief disponible. Se conserva sin reescribir como registro
+> de lo que se pudo verificar en ese momento con una sola fuente.
 
 Hecha contra `docs/sources/ARKAN_CONTROL_MASTER_PLAN_v1.0.md` (la versión "segunda
-consolidación aplicada", D1..D19). El Implementation Brief **sigue sin estar
-disponible** — ver `docs/SOURCES.md` para el detalle de qué no pudo verificarse por
-esa razón. No se modificó código: no se encontró ninguna incompatibilidad real, sólo
-confirmaciones y dos puntos que el Master Plan no cierra y quedan igual de abiertos
-que antes.
+consolidación aplicada", D1..D19). El Implementation Brief **seguía sin estar
+disponible** en ese momento. No se modificó código: no se encontró ninguna
+incompatibilidad real, sólo confirmaciones y dos puntos que el Master Plan no
+cerraba y quedaban abiertos a la espera del Implementation Brief.
 
-### Doctrinas D9, D10, D17, D18, D19
+| Doctrina                                   | Veredicto (con sólo el Master Plan)                                       |
+| ------------------------------------------ | ------------------------------------------------------------------------- |
+| **D9** — un hecho se registra una sola vez | COMPATIBLE — es el diseño del Libro de Hechos.                            |
+| **D10** — trazabilidad total               | COMPATIBLE — `Fact` responde las cinco preguntas por campo.               |
+| **D17** — Connection First                 | NO APLICA TODAVÍA — propagación comercial fuera de alcance de este slice. |
+| **D18** — complejidad interna ≠ interfaz   | NO APLICA TODAVÍA — sin navegación que pueda violarla.                    |
+| **D19** — Fast Capture                     | NO APLICA TODAVÍA — restricción del flujo de venta, inexistente.          |
 
-| Doctrina                                                | Texto (Master Plan §2)                                                                                                                                          | Veredicto                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **D9** — un hecho se registra una sola vez              | "El usuario registra un hecho una vez; el resto del sistema se actualiza por conexión, no por doble carga."                                                     | **COMPATIBLE.** Es exactamente el diseño del Libro de Hechos: `tx.facts.append` escribe una fila; los contextos son lecturas filtradas por `fact_links`, nunca una segunda escritura.                                                                                                                                                                                                                                                                                                                                                                                                   |
-| **D10** — trazabilidad total                            | "Todo movimiento importante debe poder responder: qué ocurrió, cuándo, quién, desde dónde, qué cambió. Una corrección nunca borra la historia silenciosamente." | **COMPATIBLE.** `Fact` responde las cinco preguntas por campo (`type`/`summary`, `occurredAt`, `actor`, `origin`, `consequences`); los triggers append-only impiden borrar o reescribir, y revocar un acceso es un hecho nuevo, no un borrado.                                                                                                                                                                                                                                                                                                                                          |
-| **D17** — Connection First                              | Un hecho de negocio (ej. una venta) se propaga automáticamente a todas las áreas que afecta, conservando origen y trazabilidad.                                 | **NO APLICA TODAVÍA.** La propagación que describe D17 es entre entidades comerciales (venta → inventario → cliente → cobro → Posición → …) que el Slice 1 no implementa por alcance. La arquitectura sí está preparada para ella sin rediseño: `fact.relatedEntities` + `fact_links` permiten que un hecho quede indexado bajo varias entidades, y `UnitOfWork.run` permite que una operación futura escriba varias entidades y su hecho en la misma transacción. Se verificará en concreto recién cuando exista una operación que conecte más de dos entidades (Slice 2 en adelante). |
-| **D18** — complejidad interna ≠ complejidad de interfaz | "La cantidad de entidades y conexiones internas nunca determina la cantidad de pantallas, módulos ni pasos que ve el usuario."                                  | **NO APLICA TODAVÍA.** La UI del Slice 1 no tiene navegación (una página de estado y una de historial por negocio, sin menú), así que no hay todavía una decisión de navegación que pueda violar D18. Queda como restricción a respetar cuando el Slice 2 agregue pantallas.                                                                                                                                                                                                                                                                                                            |
-| **D19** — Fast Capture                                  | Flujo de venta de esfuerzo mínimo: producto/variante → cantidad → medio/estado de pago → confirmar.                                                             | **NO APLICA TODAVÍA.** Es una restricción de UX sobre el flujo de venta, que no existe en este slice.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+Los seis supuestos declarados en la Misión 1 quedaron todos **COMPATIBLE** contra el
+Master Plan, con los puntos 1 y 2 (vocabulario de `origin` y nombres de tipos de
+hecho) señalados como dependientes de un cierre que sólo el Implementation Brief
+podía dar.
 
-### Convenciones transversales (Master Plan §4.1) contra `docs/CONVENTIONS.md`
+## Reconciliación Misión 1.1 (cierre)
 
-El Master Plan dice, textual: _"Toda entidad operativa conserva: identificador,
-negocio al que pertenece, fecha/hora del hecho, fecha/hora de registro, actor (quién),
-origen (desde dónde/qué flujo la creó) y estado."_ — **COMPATIBLE**, coincide campo por
-campo con lo implementado (`id`, `business_id`, `occurredAt`, `recordedAt`, `actor`,
-`origin`, `status` cuando corresponde). También confirma, sin ajuste necesario:
-"Fecha del hecho ≠ fecha de registro. Las métricas de período usan fecha del hecho"
-(§4.1), "Nada se borra físicamente. Las correcciones son eventos nuevos" (§4.1),
-"Un solo negocio por cuenta en P2" (§4.1) y "Arquitectura preparada para más de un
-usuario desde el inicio" (§4.1). Y en §4.19: _"Todo movimiento importante es auditable
-y responde: qué ocurrió, cuándo, quién, desde dónde/origen, qué cambió"_ — mismo
-modelo que `Fact`.
+Hecha contra las dos fuentes ya disponibles:
+`docs/sources/ARKAN_CONTROL_MASTER_PLAN_v1.0.md` y
+`docs/sources/ARKAN_CONTROL_P2_IMPLEMENTATION_BRIEF_v1.0.md` (el `_FINAL`, con
+MP-049 a MP-053, los 18 invariantes de su §5 y Q-18 cerrada para P2-A). **No se
+encontró ninguna incompatibilidad real entre los cimientos del Slice 1 y ninguna de
+las dos fuentes. No se modificó código.**
 
-### Los seis supuestos, reconciliados
+### Doctrinas D9, D10, D17, D18, D19 — cierre
 
-| #   | Supuesto                                              | Veredicto                 | Base                                                                                                                                                                                                                                                                                                                                      |
-| --- | ----------------------------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Vocabulario de `origin` (`UI`/`API`/`SISTEMA`/`SEED`) | **COMPATIBLE**            | El Master Plan exige el campo `origen` (§4.1) pero no fija su vocabulario cerrado — eso vive en el contrato de eventos del Implementation Brief, que sigue sin estar disponible. Nada en el Master Plan contradice los cuatro valores elegidos.                                                                                           |
-| 2   | Nombres de tipos de hecho y clases de consecuencia    | **COMPATIBLE**            | Mismo caso: el Master Plan describe el modelo conceptualmente (§4.19, §5) pero no da un vocabulario cerrado de eventos. Los nombres elegidos (`NEGOCIO_CREADO`, `ENTIDAD_CREADA`, …) no contradicen nada; su cierre definitivo sigue dependiendo del Implementation Brief.                                                                |
-| 3   | Saldo inicial negativo no prohibido                   | **COMPATIBLE**            | El Master Plan (§4.2) sólo dice "saldo inicial declarado"; la moneda entera está en `[PROPUESTA]` bajo Q-01 (no `[DECISIÓN]` todavía), y ninguna fuente prohíbe un valor negativo.                                                                                                                                                        |
-| 4   | Revocar dos veces es idempotente                      | **COMPATIBLE**            | El Master Plan (§8.2) dice que el acceso del contador es "revocable" por el dueño, sin especificar el comportamiento ante una revocación repetida. No hay contradicción.                                                                                                                                                                  |
-| 5   | Un usuario, un acceso por negocio                     | **COMPATIBLE**            | Consistente con "un solo negocio por cuenta en P2" (§4.1) y con el modelo de accesos de §8, que no contempla una relación N:M entre un usuario y un mismo negocio.                                                                                                                                                                        |
-| 6   | Usuario sin `business_id` propio                      | **COMPATIBLE**, reforzado | El Master Plan (§8.2) describe al contador como un usuario que un dueño invita a _su_ negocio — el mismo patrón admite naturalmente que un contador atienda más de un negocio con cuentas separadas, lo que refuerza que la identidad del usuario deba vivir separada del negocio y que el vínculo sea el acceso, tal como se implementó. |
+| Doctrina                                   | Veredicto             | Confirmación adicional del Implementation Brief                                                                                                                                                                                                                                                                                                                       |
+| ------------------------------------------ | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **D9** — un hecho se registra una sola vez | **COMPATIBLE**        | Brief §2.3: _"Fuente única. El Libro de Hechos lee la misma tabla de eventos que produce la auditoría. Prohibido duplicar datos para producir historiales."_ — exactamente `facts` + `fact_links`, sin tabla por módulo.                                                                                                                                              |
+| **D10** — trazabilidad total               | **COMPATIBLE**        | Brief §2.3 fija la estructura invariable de todo hecho: _"qué ocurrió → cuándo → quién → origen → consecuencias"_ — son, en orden, `type`/`summary`, `occurredAt`, `actor`, `origin`, `consequences` de `Fact`.                                                                                                                                                       |
+| **D17** — Connection First                 | **NO APLICA TODAVÍA** | El Brief la instancia en su §4 ("Mapa de propagación — contrato de eventos") con 13 eventos comerciales (Venta confirmada, Cobro posterior, Compra, …), ninguno de los cuales existe en este slice por alcance. El mecanismo que la soportará (`fact.relatedEntities` + `fact_links`, `UnitOfWork.run` transaccional multi-entidad) ya existe y no necesita rediseño. |
+| **D18** — complejidad interna ≠ interfaz   | **NO APLICA TODAVÍA** | El Brief cierra Q-18 con una navegación de 5 áreas (§2) que este slice no construye — no hay pantallas que puedan violarla.                                                                                                                                                                                                                                           |
+| **D19** — Fast Capture                     | **NO APLICA TODAVÍA** | El flujo de venta de esfuerzo mínimo (Brief §2.1, §3.4, §9) no existe en este slice.                                                                                                                                                                                                                                                                                  |
 
-Ningún supuesto quedó en **REQUIERE AJUSTE**. Los puntos 1 y 2 son los únicos que
-dependen de un cierre que el Master Plan no da — no porque lo contradiga, sino porque
-esa numeración específica (contrato de eventos) pertenece al Implementation Brief, que
-sigue sin haberse recibido (ver `docs/SOURCES.md`).
+### Brief §3.1, §4, §5, §15 — cierre
+
+- **§3.1 (moneda y montos, MP-035):** _"Moneda única: guaraní. Montos enteros, sin
+  decimales."_ **COMPATIBLE**, cierra definitivamente Q-01 (que en el Master Plan
+  era `[PROPUESTA]`) en el mismo sentido que ya estaba implementado: `Guarani` es un
+  entero seguro, la columna es `bigint`, sin `float` en ninguna capa. El Brief separa
+  además "montos de documento" (enteros) de "precisión decimal interna" para el
+  costo promedio ponderado — no aplica todavía porque este slice no tiene costeo,
+  y queda como nota para cuando exista.
+- **§4 (mapa de propagación / contrato de eventos):** define 13 eventos
+  **comerciales** (venta, cobro, compra, devolución, reembolso, …), ninguno de los
+  cuales es un evento de este slice. **No contradice ni cierra** el vocabulario de
+  los tres tipos de hecho ya implementados (`NEGOCIO_CREADO`, `ACCESO_OTORGADO`,
+  `ACCESO_REVOCADO`) porque el Brief no los menciona — son fundacionales, anteriores
+  a cualquier evento comercial. Cierra, en cambio, los supuestos 1 y 2 de la Misión 1
+  de forma indirecta: el contrato de eventos exacto que se esperaba de esta sección
+  es sobre eventos de negocio, no sobre eventos de cimientos, así que no hay
+  vocabulario pendiente de renombrar.
+- **§5 (18 invariantes verificables):** ver clasificación completa más abajo.
+  Ninguno bloquea el Slice 1; casi todos dependen de entidades que este slice no
+  construye por alcance.
+- **§15 (handoff a construcción):** el primer punto del orden sugerido es, textual:
+  _"1. Cimientos: negocio, usuarios/accesos, convenciones transversales, evento de
+  historial (el Libro de Hechos se construye primero, no al final)."_ **Es
+  exactamente el Slice 1**, en el orden exacto en que el Brief lo pide: primero
+  cimientos, con el Libro de Hechos incluido desde el principio y no como
+  añadido posterior. Los puntos 2 a 14 (Catálogo, Inventario, Compras, Ventas,
+  Clientes/cobros, Correcciones, Dinero, Evidencia, Asuntos, INICIO, Business
+  Health, capacidades ampliadas del contador, datos de prueba) son Slice 2 en
+  adelante y no fueron tocados.
+
+### Los diez puntos de verificación específica (tarea 8)
+
+| Punto                                       | Veredicto      | Base                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Modelo de tenancy                           | **COMPATIBLE** | Brief §3.1: "Un solo negocio por cuenta en P2-A".                                                                                                                                                                                                                                                                                                                                             |
+| Vocabulario `origin`                        | **COMPATIBLE** | Ni el Master Plan ni el Brief fijan un vocabulario cerrado de `origin`; exigen el campo (§3.1), no sus valores. Nada contradice `UI`/`API`/`SISTEMA`/`SEED`.                                                                                                                                                                                                                                  |
+| Contratos de eventos                        | **COMPATIBLE** | El contrato del Brief §4 es sobre eventos comerciales inexistentes en este slice; no colisiona con los tres tipos de hecho fundacionales implementados.                                                                                                                                                                                                                                       |
+| Modelo temporal (`occurredAt`/`recordedAt`) | **COMPATIBLE** | Brief §3.1, textual, idéntico a lo implementado.                                                                                                                                                                                                                                                                                                                                              |
+| PYG entero                                  | **COMPATIBLE** | Brief MP-035, cierre definitivo de Q-01, coincide con `Guarani`.                                                                                                                                                                                                                                                                                                                              |
+| Atomicidad                                  | **COMPATIBLE** | Brief §4: _"[REGLA DERIVADA] Atomicidad. Una operación y todas sus consecuencias se confirman o fallan juntas."_ — es `UnitOfWork.run`.                                                                                                                                                                                                                                                       |
+| Idempotencia                                | **COMPATIBLE** | Ninguna fuente la nombra explícitamente, pero es corolario necesario de D9 ("un hecho se registra una sola vez") bajo reintento; nada la contradice.                                                                                                                                                                                                                                          |
+| Permisos DUENO/CONTADOR                     | **COMPATIBLE** | Brief MP-051: el contador "tiene lectura... no edita, no consume asiento, su actividad es trazable y visible, y el dueño puede revocar el acceso" — exactamente el modelo implementado. La matriz de capacidades granular (§8.1) no aplica todavía porque sus filas (ventas, gastos, compras) no existen; Q-16 sigue `[ABIERTO]` en el propio Brief, confirmando que no había que inventarla. |
+| Libro de Hechos / `fact_links`              | **COMPATIBLE** | Brief §2.3, confirmación fuerte (ver tabla de D9 arriba).                                                                                                                                                                                                                                                                                                                                     |
+| Fuente única de historial                   | **COMPATIBLE** | Mismo punto: "prohibido duplicar datos para producir historiales" — no existe, y no puede existir por diseño, una tabla de historial por módulo.                                                                                                                                                                                                                                              |
+
+Ninguno de los diez exige un ajuste real. No se tocó código.
+
+### Los seis supuestos — cierre definitivo
+
+| #   | Supuesto                                  | Veredicto      | Cierre                                                                                                                                                                                               |
+| --- | ----------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Vocabulario de `origin`                   | **COMPATIBLE** | Cerrado: ni el Master Plan ni el Brief fijan un vocabulario cerrado; el campo es obligatorio, sus valores son detalle de implementación no normado.                                                  |
+| 2   | Nombres de tipos de hecho y consecuencias | **COMPATIBLE** | Cerrado: el contrato de eventos del Brief (§4) es sobre eventos comerciales; los tres tipos fundacionales implementados no están en conflicto porque el Brief no los define ni los necesita definir. |
+| 3   | Saldo inicial negativo no prohibido       | **COMPATIBLE** | El Brief (§3.2) mantiene "saldo inicial declarado" sin restricción de signo; MP-035 sólo exige entero.                                                                                               |
+| 4   | Revocar dos veces es idempotente          | **COMPATIBLE** | El Brief (MP-051) describe el acceso como revocable sin especificar el comportamiento ante repetición.                                                                                               |
+| 5   | Un usuario, un acceso por negocio         | **COMPATIBLE** | El Brief (§3.1, §8.1) no contempla una relación N:M usuario-negocio dentro de un mismo negocio.                                                                                                      |
+| 6   | Usuario sin `business_id` propio          | **COMPATIBLE** | Reforzado por el mismo modelo de invitación del Brief (§8.1: "Invitación → conexión → permisos mínimos → actividad visible → acceso revocable" — MP §5.12).                                          |
+
+**Los seis quedan COMPATIBLE, cerrados, sin depender de ninguna fuente adicional.**
+
+### Detalle menor observado, no incompatible
+
+El Brief §3.2 lista "Usuario/Acceso: nombre, rol, estado" como fila resumen de la
+tabla de entidades. El dominio implementado separa **Usuario** (`email`,
+`displayName`) de **AccessGrant** (`role`, `status`) en dos tablas unidas por el
+acceso. La tabla del Brief es un resumen de campos mínimos, no una prohibición de
+campos adicionales — el propio §3 dice: _"cualquier campo adicional debe
+justificarse con una consecuencia empresarial real"_ — y `email` es necesario para
+identificar/invitar a una persona en un sistema multiusuario real. No requiere
+ajuste.
+
+### Los 18 invariantes del Brief §5 — clasificación
+
+Ninguno bloquea el Slice 1. Diecisiete dependen de entidades que este slice no
+construye por alcance (venta, compra, cobro, devolución, reembolso, Posición
+registrada, Asunto, variante); uno ya es exigible y está implementado y testeado.
+
+| #   | Invariante (resumen)                                               | Clasificación                 | Nota                                                                                                                                                                                                                                         |
+| --- | ------------------------------------------------------------------ | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `stock(variante) = Σ movimientos(variante)`                        | PREPARADO ARQUITECTÓNICAMENTE | Requiere Variante e Inventario (Slice 2+).                                                                                                                                                                                                   |
+| 2   | `Posición = saldo inicial + Σ movimientos`                         | PREPARADO ARQUITECTÓNICAMENTE | La precondición "saldo inicial declarado, entero" ya está implementada y validada en `Business`; los movimientos de Posición no existen aún.                                                                                                 |
+| 3   | `Σ(subtotal−descuento) = total` en venta con descuento             | PREPARADO ARQUITECTÓNICAMENTE | Requiere Venta (Slice 2+).                                                                                                                                                                                                                   |
+| 4   | `saldo(venta) = total − cobros − reducciones`                      | PREPARADO ARQUITECTÓNICAMENTE | Requiere Venta y Cobro.                                                                                                                                                                                                                      |
+| 5   | `saldo(cliente) = Σ saldos de sus ventas`                          | PREPARADO ARQUITECTÓNICAMENTE | Requiere Cliente y Venta.                                                                                                                                                                                                                    |
+| 6   | `netas = brutas − correcciones`                                    | PREPARADO ARQUITECTÓNICAMENTE | Requiere Venta y Corrección.                                                                                                                                                                                                                 |
+| 7   | Venta anulada por error no aparece en brutas ni netas              | PREPARADO ARQUITECTÓNICAMENTE | Requiere Venta y `ERROR_DE_CARGA`.                                                                                                                                                                                                           |
+| 8   | `costo_al_momento` nunca se modifica tras su creación              | PREPARADO ARQUITECTÓNICAMENTE | Requiere Línea de venta; el patrón de inmutabilidad ya es el usado en todo el dominio (`Fact`, `Business`, `AccessGrant` son objetos inmutables reconstruidos, nunca mutados en el lugar).                                                   |
+| 9   | Todo movimiento derivado tiene operación de origen no nula         | **APLICABLE YA A CIMIENTOS**  | Ya implementado y testeado: todo `Fact` lleva `operationId` no nulo, asignado por `UnitOfWork.run`, correlacionable vía `factReader.byOperation` (`tests/application/fact-ledger.test.ts`, caso "correlaciona todo hecho de una operación"). |
+| 10  | Toda cifra de INICIO se abre hasta sus operaciones                 | PREPARADO ARQUITECTÓNICAMENTE | INICIO no existe; el mismo principio ya vale para la página `/negocios/[businessId]`, que muestra cada hecho con sus consecuencias estructuradas.                                                                                            |
+| 11  | Adjuntar evidencia no altera cifras previas                        | PREPARADO ARQUITECTÓNICAMENTE | Requiere Evidencia/Comprobante.                                                                                                                                                                                                              |
+| 12  | Ningún margen sobre costo ausente tratado como 0                   | PREPARADO ARQUITECTÓNICAMENTE | Requiere costeo (Slice 2+).                                                                                                                                                                                                                  |
+| 13  | Una variante nunca tiene A1 y A4 abiertos a la vez                 | PREPARADO ARQUITECTÓNICAMENTE | Requiere Variante y Asuntos.                                                                                                                                                                                                                 |
+| 14  | Compra PAGADA ⇔ exactamente un PagoCompra por el total             | PREPARADO ARQUITECTÓNICAMENTE | Requiere Compra y PagoCompra.                                                                                                                                                                                                                |
+| 15  | Todo PagoCompra tiene su movimiento de Posición                    | PREPARADO ARQUITECTÓNICAMENTE | Requiere PagoCompra y Posición registrada.                                                                                                                                                                                                   |
+| 16  | Todo Reembolso conserva sus campos y su movimiento de Posición     | PREPARADO ARQUITECTÓNICAMENTE | Requiere Reembolso.                                                                                                                                                                                                                          |
+| 17  | Devolución que sólo reduce saldo no genera Reembolso ni movimiento | PREPARADO ARQUITECTÓNICAMENTE | Requiere Devolución y Reembolso.                                                                                                                                                                                                             |
+| 18  | Ningún A2 usa "vencido" sin vencimiento declarado                  | PREPARADO ARQUITECTÓNICAMENTE | Requiere Venta y Asuntos.                                                                                                                                                                                                                    |
+
+### Conclusión de la reconciliación
+
+Cero incompatibilidades. Cero supuestos en REQUIERE AJUSTE. Cero invariantes
+bloqueados — el único exigible hoy (#9) ya pasa. Cero cambios de código.

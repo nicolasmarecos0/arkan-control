@@ -71,9 +71,13 @@ infraestructura ni framework, y `src/application` sólo depende de puertos.
 ## Fuentes de verdad
 
 1. `docs/sources/ARKAN_CONTROL_MASTER_PLAN_v1.0.md` — disponible desde la Misión 1.1
-2. `ARKAN_CONTROL_P2_IMPLEMENTATION_BRIEF_v1.0.md` — **ausente del repositorio**, ver `docs/SOURCES.md`
+2. `docs/sources/ARKAN_CONTROL_P2_IMPLEMENTATION_BRIEF_v1.0.md` — disponible desde el cierre de la Misión 1.1
 3. `docs/missions/MISSION_1_BRIEF.md` y `docs/missions/MISSION_1.1_BRIEF.md` — contratos con los que se construyó y reconcilió este slice
 4. `CLAUDE.md` — reglas de operación para trabajar en este repositorio
+
+Ambas fuentes normativas fueron reconciliadas contra los cimientos del Slice 1 sin
+encontrar incompatibilidades — ver `docs/DECISIONS.md`, sección "Reconciliación
+Misión 1.1 (cierre)".
 
 ## Qué está implementado
 
